@@ -15,28 +15,7 @@ def day_3(filename):
     ]
 
     total_p1 = 0
-
-    for y in range(len(matrix)):
-        current_number = ""
-        current_number_is_valid = False
-        for x in range(len(matrix[y])):
-            if matrix[y][x].isdigit():
-                current_number += matrix[y][x]
-                for dx, dy in square:
-                    if 0 <= x + dx < len(matrix[y]) and 0 <= y + dy < len(matrix):
-                        if not matrix[y + dy][x + dx].isdigit() and matrix[y + dy][x + dx] != ".":
-                            current_number_is_valid = True
-            else:
-                if current_number_is_valid and len(current_number) > 0:
-                    total_p1 += int(current_number)
-                current_number = ""
-                current_number_is_valid = False
-        if current_number_is_valid and len(current_number) > 0:
-            total_p1 += int(current_number)
-        current_number = ""
-        current_number_is_valid = False
-
-    total_p2 = 1
+    total_p2 = 0
     asterix_values = {}
 
     for y in range(len(matrix)):
@@ -47,29 +26,35 @@ def day_3(filename):
             if matrix[y][x].isdigit():
                 current_number += matrix[y][x]
                 for dx, dy in square:
+                    if 0 <= x + dx < len(matrix[y]) and 0 <= y + dy < len(matrix):
+                        if not matrix[y + dy][x + dx].isdigit() and matrix[y + dy][x + dx] != ".":
+                            current_number_is_valid = True
                     if 0 <= x + dx < len(matrix[y]) and 0 <= y + dy < len(matrix) and  matrix[y + dy][x + dx] == "*":
-                        asterix_x = x + dx
-                        asterix_y = y + dy
-                        if not (asterix_x, asterix_y) in current_asterix:
-                            current_asterix.append((asterix_x, asterix_y))
-
+                        if not (y + dy, x + dx) in current_asterix:
+                            current_asterix.append((y + dy, x + dx))
             else:
+                if current_number_is_valid and len(current_number) > 0:
+                    total_p1 += int(current_number)
                 if current_number != "":
                     for asterix in current_asterix:
                         if not asterix in asterix_values:
                             asterix_values[asterix] = []
                         asterix_values[asterix].append(int(current_number))
-                    current_number = ""
-                    current_asterix = []
+
+                current_asterix = []
+                current_number = ""
+                current_number_is_valid = False
+
+        if current_number_is_valid and len(current_number) > 0:
+            total_p1 += int(current_number)
         if current_number != "":
             for asterix in current_asterix:
                 if not asterix in asterix_values:
                     asterix_values[asterix] = []
                 asterix_values[asterix].append(int(current_number))
-        current_number = ""
         current_asterix = []
-
-    total_p2 = 0
+        current_number = ""
+        current_number_is_valid = False
 
     for asterix, values in asterix_values.items():
         if len(values) == 2:
