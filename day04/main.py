@@ -7,7 +7,6 @@ def day_4(filename):
     p1 = 0
     p2 = 0
     scratchcards = {i: 1 for i in range(1, len(cards) + 1)}
-    additional_cards = []
 
     for card in cards:
         card_id = int(card.split(": ")[0].split(" ")[-1])
