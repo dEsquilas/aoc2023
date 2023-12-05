@@ -1,3 +1,5 @@
+import time
+
 class Map:
     def __init__(self, map):
         self.map_type = map[0]
@@ -110,8 +112,10 @@ def test_day_5():
      assert day_5("test.txt") == (35, 46)
 
 test_day_5()
-
+start_time = time.perf_counter()
 p1, p2 = day_5("input.txt")
+end_time = time.perf_counter()
 
 print("Part 1: ", p1)
 print("Part 2: ", p2)
+print(f"Execution time: {(end_time - start_time) :.3f} seconds")
