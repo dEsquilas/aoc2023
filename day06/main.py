@@ -35,7 +35,6 @@ def calculate_hold_time(rg, cur_time, cur_distance):
         elapse_time = cur_time - hold
         distance_traveled = speed * elapse_time
         if distance_traveled > cur_distance:
-            enought = True
             hold_time = hold
             break
 
