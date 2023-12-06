@@ -20,31 +20,26 @@ def day_6(filename):
     return p1, max_p2 - min_p2 + 1
 
 def calculate_min_max(cur_time, cur_distance):
-    # count by bottom
-    enought = False
-    min_hold_time = 0
-    max_hold_time = 0
-    for x in range(1, cur_time - 1):
-        hold = x
-        speed = hold
-        elapse_time = cur_time - hold
-        distance_traveled = speed * elapse_time
-        if distance_traveled > cur_distance:
-            enought = True
-            min_hold_time = hold
-            break
 
-    for x in reversed(range(1, cur_time - 1)):
-        hold = x
-        speed = hold
-        elapse_time = cur_time - hold
-        distance_traveled = speed * elapse_time
-        if distance_traveled > cur_distance:
-            enought = True
-            max_hold_time = hold
-            break
+    min_hold_time = calculate_hold_time(range(1, cur_time-1), cur_time, cur_distance)
+    max_hold_time = calculate_hold_time(reversed(range(1, cur_time-1)), cur_time, cur_distance)
 
     return min_hold_time, max_hold_time
+
+def calculate_hold_time(rg, cur_time, cur_distance):
+    hold_time = 0
+
+    for x in rg:
+        hold = x
+        speed = hold
+        elapse_time = cur_time - hold
+        distance_traveled = speed * elapse_time
+        if distance_traveled > cur_distance:
+            enought = True
+            hold_time = hold
+            break
+
+    return hold_time
 
 def test_day_6():
      assert day_6("test.txt") == (288, 71503)
