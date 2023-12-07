@@ -12,7 +12,7 @@ def day_7(filename):
 
     for hand in hands_p1:
         hand.append(check_type(hand[0]))
-    hands_p1 = sorted(hands_p1, key=cmp_to_key(cmp))
+    hands_p1 = sorted(hands_p1, key=cmp_to_key(cmp1))
     p1 = 0
     for i in range(len(hands_p1)):
         p1 += hands_p1[i][1] * (i + 1)
@@ -29,7 +29,7 @@ def day_7(filename):
 
     return p1, p2
 
-def cmp(a, b):
+def base_cmp(a, b, type):
     if a[2] > b[2]:
         return 1
     elif a[2] < b[2]:
@@ -39,31 +39,21 @@ def cmp(a, b):
         if a[0][i] == b[0][i]:
             continue
         else:
-            for j in ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]:
+            cards = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
+            if type:
+                cards = ["A", "K", "Q", "T", "9", "8", "7", "6", "5", "4", "3", "2", "J"]
+            for j in cards:
                 if a[0][i] == j:
                     return 1
                 if b[0][i] == j:
                     return -1
     return 0
+def cmp1(a, b):
+    return base_cmp(a, b, False)
+
 
 def cmp2(a, b):
-    if a[2] > b[2]:
-        return 1
-    elif a[2] < b[2]:
-        return -1
-
-    for i in range(len(a[0])):
-        if a[0][i] == b[0][i]:
-            continue
-        else:
-            for j in ["A", "K", "Q", "T", "9", "8", "7", "6", "5", "4", "3", "2", "J"]:
-                if a[0][i] == j:
-                    return 1
-                if b[0][i] == j:
-                    return -1
-    return 0
-
-
+    return base_cmp(a, b, True)
 
 def count_ocurrences(hand):
     co = {}
