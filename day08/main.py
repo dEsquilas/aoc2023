@@ -1,3 +1,5 @@
+import time
+
 def read_input(filename):
     lines = [line.strip() for line in open(filename, "r")]
 
@@ -52,21 +54,21 @@ def day_8_p2(filename):
             starts_nodes.append(key)
 
     # for node in current_nodes:
-    min_distance = 9999999999999999
+    max_distance = 0
 
-    all_min_distances = []
+    all_max_distances = []
     for node in starts_nodes:
         dtfz = distance_to_first_z(instructions, order, node)
-        all_min_distances.append(dtfz)
-        min_distance = min(dtfz, min_distance)
+        all_max_distances.append(dtfz)
+        max_distance = max(dtfz, max_distance)
 
     cycle = 1
     steps = 0
 
     while True:
-        steps = cycle * min_distance
+        steps = cycle * max_distance
         allowed = True
-        for distance in all_min_distances:
+        for distance in all_max_distances:
             if steps % distance != 0:
                 allowed = False
                 break
@@ -86,7 +88,10 @@ def test_day_8():
 
 test_day_8()
 p1 = day_8_p1("input.txt")
+start_time = time.perf_counter()
 p2 = day_8_p2("input.txt")
+end_time = time.perf_counter()
 
 print("Part 1: ", p1)
 print("Part 2: ", p2)
+print(f"Execution time: {(end_time - start_time) :.3f} seconds")
