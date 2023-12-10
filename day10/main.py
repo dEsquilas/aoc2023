@@ -1,5 +1,9 @@
+DIRECTIONS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+PIPE_TYPES = ["F", "7", "J", "L", "-", "|", "S"]
+
 def day_10(filename):
-    map = [[x for x in list(line)] for line in open(filename).read().splitlines()]
+    with (open(filename)) as file:
+        pipes_map = [list(line) for line in file.read().splitlines()]
 
     # (row_index, col_index)
     # from_<directon>
@@ -35,45 +39,44 @@ def day_10(filename):
 
     # grow map
 
-    map.insert(0, ["." for _ in range(len(map[0]))])
-    for row_index in range(len(map)):
-        map[row_index].insert(0, ".")
-        map[row_index].append(".")
-    map.append(["." for _ in range(len(map[0]))])
+    pipes_map.insert(0, ["." for _ in range(len(pipes_map[0]))])
+    for row_index in range(len(pipes_map)):
+        pipes_map[row_index].insert(0, ".")
+        pipes_map[row_index].append(".")
+    pipes_map.append(["." for _ in range(len(pipes_map[0]))])
 
-    # find sorrounding values
+    # find surrounding values from Start
 
-    for row_index in range(len(map)):
-        for col_index in range(len(map[row_index])):
-            if map[row_index][col_index] == "S":
-                S = (row_index, col_index)
+    starter_cell = (-1, -1)
+
+    for row_index in range(len(pipes_map)):
+        for col_index in range(len(pipes_map[row_index])):
+            if pipes_map[row_index][col_index] == "S":
+                starter_cell = (row_index, col_index)
                 break
+        if starter_cell != (-1, -1):
+            break
 
-    dir = [(0, -1), (0, 1), (-1, 0), (1, 0)]
-    current_cell = S
+    current_cell = starter_cell
+    from_d = ""
 
-    for d in dir:
-        if 0 <= S[0] + d[0] < len(map) and 0 <= S[1] + d[1] < len(map[0]) and  map[S[0] + d[0]][S[1] + d[1]] != ".":
-            next_cell = (S[0] + d[0], S[1] + d[1])
-            from_d = from_direction(S, next_cell)
+    for d in DIRECTIONS:
+        if 0 <= starter_cell[0] + d[0] < len(pipes_map) and 0 <= starter_cell[1] + d[1] < len(pipes_map[0]) and  pipes_map[starter_cell[0] + d[0]][starter_cell[1] + d[1]] != ".":
+            next_cell = (starter_cell[0] + d[0], starter_cell[1] + d[1])
+            from_d = from_direction(starter_cell, next_cell)
             current_cell = next_cell
-            if from_d in pipes[map[current_cell[0]][current_cell[1]]]:
+            if from_d in pipes[pipes_map[current_cell[0]][current_cell[1]]]:
                 break
-
-
-
-
-    growed_map = grow_map(map)
     steps = 1
 
-    used_tiles = [["*" for x in range(len(map[y]))] for y in range(len(map))]
+    used_tiles = [["*" for x in range(len(pipes_map[y]))] for y in range(len(pipes_map))]
     used_tiles[current_cell[0]][current_cell[1]] = "U"
 
     # PART 1
 
     while True:
 
-        current_pipe = pipes[map[current_cell[0]][current_cell[1]]]
+        current_pipe = pipes[pipes_map[current_cell[0]][current_cell[1]]]
         to_apply = current_pipe[from_d]
         next_cell = (current_cell[0] + to_apply[0], current_cell[1] + to_apply[1])
         from_d = from_direction(current_cell, next_cell)
@@ -83,75 +86,54 @@ def day_10(filename):
 
         used_tiles[current_cell[0]][current_cell[1]] = "U"
 
-        if map[current_cell[0]][current_cell[1]] == "S":
+        if pipes_map[current_cell[0]][current_cell[1]] == "S":
             break
 
-    used_tiles[S[0]][S[1]] = "U"
-    print(S)
+    used_tiles[starter_cell[0]][starter_cell[1]] = "U"
 
-    print_map(used_tiles, True)
-
-    print("\n\n\n\n")
-    ops = ["F", "7", "J", "L", "-", "|", "S"]
-    for row_index in range(len(map)):
-        for col_index in range(len(map[row_index])):
-            if used_tiles[row_index][col_index] == "*" and map[row_index][col_index] in ops:
+    for row_index in range(len(pipes_map)):
+        for col_index in range(len(pipes_map[row_index])):
+            if used_tiles[row_index][col_index] == "*" and pipes_map[row_index][col_index] in PIPE_TYPES:
                 used_tiles[row_index][col_index] = "N"
 
-    print("\n\n\n\n")
-    pre_flood(used_tiles)
-    print_map(used_tiles, True)
+    # tiled used are marked with U
+    # non used tiles are marked with N
+    # free spaces are marked with *
 
-    # PART 2
+    # create a map using the real pipes for flood it
 
-    # print_map(growed_map, True)
-    # print("\n\n\n\n")
-    # flood(growed_map)
-    # print_map(growed_map, True)
+    extended_map = extend_map(pipes_map)
 
-    #print_map(growed_map, True)
+    # use the flood system. You can flood all floor until you take a limit or a used pipe
+    # if the pipe is not used, count as flooded
 
-    print("\n\n\n\n")
-    flood(growed_map)
+    flood(extended_map)
 
-    #print_map(growed_map, True)
+    tiles_not_reach_exterior = 0
 
-    count = 0
-
-    on1 = []
-    on2 = []
-    on3 = []
-
-    for row_index in range(len(map)):
-        for col_index in range(len(map[row_index])):
-            #translate center
+    for row_index in range(len(pipes_map)):
+        for col_index in range(len(pipes_map[row_index])):
+            # translate center for growed map
+            # every center part of the pipe is always 1
             t_col = col_index * 3 + 1
             t_row = row_index * 3 + 1
-            if growed_map[t_row][t_col] == 1 and map[row_index][col_index] in ops and used_tiles[row_index][col_index] == "N": # es una tuberia y no esta usada
-                # la tuberia puede llegar al exterior?
+            if extended_map[t_row][t_col] == 1 and pipes_map[row_index][col_index] in PIPE_TYPES and used_tiles[row_index][col_index] == "N": # it's a pipe and it's not used
+                # can the pipe reach the exterior?
+                # the pipe can reach the exterior if any part of the full tile
+                # is flooded (2)
                 can_reach_exterior = False
                 for c in range(t_col -1, t_col + 1):
                     for r in range(t_row -1, t_row + 1):
-                        if growed_map[r][c] == 2:
+                        if extended_map[r][c] == 2:
                             can_reach_exterior = True
                             break
                 if not can_reach_exterior:
-                    on2.append((row_index, col_index))
-                    count += 1
-            if used_tiles[row_index][col_index] == "*" and map[row_index][col_index] == ".":
-                if growed_map[t_row][t_col] not in (1, 2): # es un trozo de "tierra" y no se ha inhundado
-                    count += 1
-                    on3.append((row_index, col_index))
+                    tiles_not_reach_exterior += 1
+            if used_tiles[row_index][col_index] == "*" and pipes_map[row_index][col_index] == ".":
+                if extended_map[t_row][t_col] not in (1, 2): # it's a free space and is not flooded
+                    tiles_not_reach_exterior += 1
 
-    print_map(growed_map, True)
-
-    print(on1)
-    print(on2)
-    print(on3)
-    print(len(on1), len(on2), len(on3))
-
-    return steps//2, count
-
+    return steps//2, tiles_not_reach_exterior
 
 def from_direction(current_cell, next_cell):
     from_direction_int = (next_cell[0] - current_cell[0], next_cell[1] - current_cell[1])
@@ -164,49 +146,21 @@ def from_direction(current_cell, next_cell):
     elif from_direction_int == (-1, 0):
         return "down"
 
-def print_map(map, v=False):
-
-    for row_index in range(len(map)):
-        for col_index in range(len(map[row_index])):
-            c = map[row_index][col_index]
-            if not v:
-                print(f" {c:3} ", end="")
-            else:
-                if(c == 0):
-                    print("·", end="")
-                else:
-                    print(c, end="")
-                # if col_index % 3 == 2:
-                #     print(" ", end="")
-        print()
-        # if row_index % 3 == 2:
-        #     print()
-
-def pre_flood(map):
+def flood(current_map):
     start = (0, 0)
     next_cells = [start]
-    dir = [(0, -1), (0, 1), (-1, 0), (1, 0)]
     while len(next_cells) > 0:
         current_cell = next_cells.pop(0)
-        for d in dir:
-            if 0 <= current_cell[0] + d[0] < len(map) and 0 <= current_cell[1] + d[1] < len(map[0]):  # it's on limits
-                if map[current_cell[0] + d[0]][current_cell[1] + d[1]] in ("N", "*"):
-                    map[current_cell[0] + d[0]][current_cell[1] + d[1]] = "."
+        for d in DIRECTIONS:
+            if 0 <= current_cell[0] + d[0] < len(current_map) and 0 <= current_cell[1] + d[1] < len(current_map[0]): # it's on limits
+                if current_map[current_cell[0] + d[0]][current_cell[1] + d[1]] == 0:
+                    current_map[current_cell[0] + d[0]][current_cell[1] + d[1]] = 2
                     next_cells.append((current_cell[0] + d[0], current_cell[1] + d[1]))
-def flood(map):
-    start = (0, 0)
-    next_cells = [start]
-    dir = [(0, -1), (0, 1), (-1, 0), (1, 0)]
-    while len(next_cells) > 0:
-        current_cell = next_cells.pop(0)
-        for d in dir:
-            if 0 <= current_cell[0] + d[0] < len(map) and 0 <= current_cell[1] + d[1] < len(map[0]): # it's on limits
-                if map[current_cell[0] + d[0]][current_cell[1] + d[1]] == 0:
-                    map[current_cell[0] + d[0]][current_cell[1] + d[1]] = 2
+                if current_map[current_cell[0] + d[0]][current_cell[1] + d[1]] in ("N", "*"):
+                    current_map[current_cell[0] + d[0]][current_cell[1] + d[1]] = "."
                     next_cells.append((current_cell[0] + d[0], current_cell[1] + d[1]))
 
-
-def grow_map(map):
+def extend_map(current_map):
     tiles = {
         "|": [
             [0, 1, 0],
@@ -250,22 +204,21 @@ def grow_map(map):
         ]
     }
 
-    growed_map =  [[] for _ in range(len(map) * 3)]
-    current_growed_map_row_index = 0
-    for row_index in range(len(map)):
-        for col_index in range(len(map[row_index])):
-            current_tile = map[row_index][col_index]
+    extended_map =  [[] for _ in range(len(current_map) * 3)]
+    current_extended_map_row_index = 0
 
+    # Generate a map using 0 as free space
+    # and 1 as pipe
+
+    for row_index in range(len(current_map)):
+        for col_index in range(len(current_map[row_index])):
+            current_tile = current_map[row_index][col_index]
             subtile = tiles[current_tile]
-
             for subtile_row_id in range(len(subtile)):
-                growed_map[subtile_row_id + current_growed_map_row_index].extend(subtile[subtile_row_id])
+                extended_map[subtile_row_id + current_extended_map_row_index].extend(subtile[subtile_row_id])
+        current_extended_map_row_index += 3
 
-        current_growed_map_row_index += 3
-
-
-    return growed_map
-
+    return extended_map
 
 def test_day_10():
     assert day_10("test.txt")[0] == 8
